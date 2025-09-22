@@ -1,6 +1,6 @@
 # Faculty Career Advancement System
 
-A comprehensive web-based platform designed to streamline faculty self-appraisal processes in higher education institutions. Developed for the Smart India Hackathon 2025 under the Government of NCT of Delhi's IT Department.
+A web-based platform designed to streamline faculty self-appraisal processes in higher education institutions. Developed for the Smart India Hackathon 2025 under the Government of NCT of Delhi's IT Department.
 
 ## Overview
 
@@ -61,7 +61,7 @@ faculty-appraisal-system/
 2. Upload all project files to the repository
 3. Enable GitHub Pages in repository settings
 4. Set source to main branch
-5. The application will be available at `https://[username].github.io/[repository-name]`
+5. The application will be available at `https://yugalshivaji.github.io/fas`
 
 ## Usage
 
