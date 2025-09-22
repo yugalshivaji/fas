@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faculty Career Advancement System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        :root {
+            --primary: #FFC107;
+            --secondary: #2196F3;
+            --light: #FFF9E6;
+            --dark: #333333;
+            --success: #28a745;
+            --danger: #dc3545;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light);
+            color: var(--dark);
+        }
+        
+        .preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--light);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        
+        .spinner {
+            width: 70px;
+            height: 70px;
+            border: 5px solid rgba(255, 193, 7, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, var(--primary), #FF9800);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .hero-section {
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23FFF9E6"/><path d="M0 0L100 100" stroke="%23FFC107" stroke-width="2"/><path d="M100 0L0 100" stroke="%23FFC107" stroke-width="2"/></svg>');
+            padding: 100px 0;
+            text-align: center;
+        }
+        
+        .btn-primary {
+            background-color: var(--secondary);
+            border-color: var(--secondary);
+        }
+        
+        .btn-primary:hover {
+            background-color: #0b7dda;
+            border-color: #0b7dda;
+        }
+        
+        .feature-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: none;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+        
+        .appraisal-form {
+            background-color: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .footer {
+            background: linear-gradient(135deg, var(--dark), #000);
+            color: white;
+            padding: 40px 0;
+        }
+        
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 30px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.1);
+        }
+        
+        .admin-panel {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background-color: var(--success);
+            color: white;
+            border-radius: 5px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: transform 0.5s, opacity 0.5s;
+            z-index: 1000;
+        }
+        
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .form-section {
+            display: none;
+        }
+        
+        .form-section.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .hero-section {
+                padding: 60px 0;
+            }
+            
+            .feature-card {
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Preloader -->
+    <div class="preloader">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Notification Alert -->
+    <div class="notification" id="notification"></div>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-graduation-cap me-2"></i>Faculty Advancement System
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="#home">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#features">Features</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+                    <li class="nav-item" id="loginNavItem"><a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Login</a></li>
+                    <li class="nav-item d-none" id="dashboardNavItem"><a class="nav-link" href="#dashboard">Dashboard</a></li>
+                    <li class="nav-item d-none" id="adminNavItem"><a class="nav-link" href="#admin">Admin Panel</a></li>
+                    <li class="nav-item d-none" id="logoutNavItem"><a class="nav-link" href="#" id="logoutBtn">Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div id="main-content">
+        <!-- Home Section -->
+        <section id="home" class="hero-section">
+            <div class="container">
+                <h1 class="display-4 fw-bold mb-4">Automated Faculty Career Advancement System</h1>
+                <p class="lead mb-4">Streamlining faculty self-appraisal for higher education institutions</p>
+                <button class="btn btn-primary btn-lg me-2" data-bs-toggle="modal" data-bs-target="#loginModal">Get Started</button>
+                <a href="#features" class="btn btn-outline-dark btn-lg">Learn More</a>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="py-5">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-6">
+                        <h2 class="mb-4">About The System</h2>
+                        <p class="lead">This innovative platform is designed to enhance the efficiency and transparency of faculty self-appraisal in university settings.</p>
+                        <p>The system captures and manages intricate details of faculty activities, encompassing research publications, event participation, seminars, projects, and lectures. It creates a user-friendly environment for faculty members while ensuring data confidentiality through secure registration and login systems.</p>
+                        <p>By introducing features for logging events, seminars, projects, and lectures, the system offers a holistic view of faculty contributions beyond the classroom.</p>
+                    </div>
+                    <div class="col-lg-6">
+                        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='500' height='300' viewBox='0 0 500 300'><rect x='0' y='0' width='500' height='300' fill='%23FFF9E6'/><circle cx='150' cy='150' r='100' fill='%23FFC107' opacity='0.3'/><circle cx='350' cy='150' r='80' fill='%232196F3' opacity='0.3'/><path d='M250 50L300 150L250 250L200 150Z' fill='%2328a745' opacity='0.3'/></svg>" class="img-fluid rounded" alt="About System">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="py-5 bg-white">
+            <div class="container">
+                <h2 class="text-center mb-5">System Features</h2>
+                <div class="row">
+                    <div class="col-md-4 mb-4">
+                        <div class="feature-card card h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-user-shield fa-3x mb-3 text-primary"></i>
+                                <h4 class="card-title">Secure Authentication</h4>
+                                <p class="card-text">Secure registration and login system ensuring data confidentiality and personalized access.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="feature-card card h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-clipboard-list fa-3x mb-3 text-primary"></i>
+                                <h4 class="card-title">Self-Appraisal Form</h4>
+                                <p class="card-text">Comprehensive form for faculty to document teaching, research, and community engagement activities.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="feature-card card h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-chart-line fa-3x mb-3 text-primary"></i>
+                                <h4 class="card-title">Admin Analytics</h4>
+                                <p class="card-text">Administrators can view, sort, and analyze faculty contributions for informed decision-making.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="feature-card card h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-file-pdf fa-3x mb-3 text-primary"></i>
+                                <h4 class="card-title">PDF Reports</h4>
+                                <p class="card-text">Generate and download detailed PDF reports of faculty appraisals for record keeping.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="feature-card card h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-database fa-3x mb-3 text-primary"></i>
+                                <h4 class="card-title">Centralized Database</h4>
+                                <p class="card-text">All faculty data stored securely in a centralized database for easy access and management.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="feature-card card h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-mobile-alt fa-3x mb-3 text-primary"></i>
+                                <h4 class="card-title">Mobile Responsive</h4>
+                                <p class="card-text">Fully responsive design that works seamlessly on desktops, tablets, and mobile devices.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Faculty Dashboard (Initially Hidden) -->
+        <section id="dashboard" class="py-5 d-none">
+            <div class="container">
+                <h2 class="mb-4">Faculty Dashboard</h2>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card mb-4">
+                            <div class="card-body text-center">
+                                <i class="fas fa-user-circle fa-2x mb-2 text-primary"></i>
+                                <h5 id="userName">Faculty Name</h5>
+                                <p class="text-muted" id="userEmail">email@example.com</p>
+                                <p class="text-muted" id="userCode">Employee Code: -</p>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header bg-primary text-white">
+                                <h6 class="mb-0">Quick Actions</h6>
+                            </div>
+                            <div class="card-body">
+                                <button class="btn btn-outline-primary w-100 mb-2" id="newAppraisalBtn">New Appraisal</button>
+                                <button class="btn btn-outline-primary w-100 mb-2" id="viewSubmissionsBtn">View My Submissions</button>
+                                <button class="btn btn-outline-primary w-100" id="researchSyncBtn">Sync Research Publications</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="appraisal-form">
+                            <h4 class="mb-4">Faculty Self-Appraisal Form</h4>
+                            <div class="progress mb-4">
+                                <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                            </div>
+                            
+                            <form id="appraisalForm">
+                                <!-- Form sections will be dynamically loaded here -->
+                                <div class="form-navigation mt-4">
+                                    <button type="button" class="btn btn-secondary me-2" id="prevBtn">Previous</button>
+                                    <button type="button" class="btn btn-primary" id="nextBtn">Next</button>
+                                    <button type="submit" class="btn btn-success d-none" id="submitBtn">Submit</button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <div class="submissions-list d-none">
+                            <h4 class="mb-4">My Submissions</h4>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Academic Year</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="submissionsTableBody">
+                                        <!-- Submissions will be loaded here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <button class="btn btn-outline-secondary" id="backToDashboardBtn">Back to Dashboard</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Admin Panel (Initially Hidden) -->
+        <section id="admin" class="py-5 d-none">
+            <div class="container">
+                <h2 class="mb-4">Admin Panel</h2>
+                <div class="admin-panel">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Search faculty..." id="searchInput">
+                                <button class="btn btn-primary" type="button">Search</button>
+                            </div>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <div class="btn-group">
+                                <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                    Sort By: Name
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item sort-option" data-sort="name">Name</a></li>
+                                    <li><a class="dropdown-item sort-option" data-sort="code">Employee Code</a></li>
+                                    <li><a class="dropdown-item sort-option" data-sort="date">Date of Submission</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Employee Code</th>
+                                    <th>Department</th>
+                                    <th>Submission Date</th>
+                                    <th>Academic Year</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminTableBody">
+                                <!-- Admin data will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mt-4">
+                        <div>
+                            <button class="btn btn-outline-primary" id="exportAllBtn">Export All as PDF</button>
+                        </div>
+                        <div>
+                            <ul class="pagination">
+                                <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
+                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                <li class="page-item"><a class="page-link" href="#">Next</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="py-5">
+            <div class="container">
+                <h2 class="text-center mb-5">Contact Us</h2>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">Get in Touch</h5>
+                                <p class="card-text">Have questions or need support? Reach out to our team.</p>
+                                <ul class="list-unstyled">
+                                    <li class="mb-2"><i class="fas fa-envelope me-2"></i> support@facultyappraisal.edu</li>
+                                    <li class="mb-2"><i class="fas fa-phone me-2"></i> +91 9876543210</li>
+                                    <li class="mb-2"><i class="fas fa-map-marker-alt me-2"></i> IT Department, GNCTD, Delhi</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Send a Message</h5>
+                                <form>
+                                    <div class="mb-3">
+                                        <input type="text" class="form-control" placeholder="Your Name">
+                                    </div>
+                                    <div class="mb-3">
+                                        <input type="email" class="form-control" placeholder="Your Email">
+                                    </div>
+                                    <div class="mb-3">
+                                        <textarea class="form-control" rows="4" placeholder="Your Message"></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Send Message</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5>Faculty Career Advancement System</h5>
+                    <p>A comprehensive platform for streamlining faculty self-appraisal processes in higher education institutions.</p>
+                </div>
+                <div class="col-md-2 mb-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#about">About</a></li>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h5>Legal</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Data Protection</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h5>Connect With Us</h5>
+                    <div class="d-flex">
+                        <a href="#" class="me-3 text-white"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="me-3 text-white"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="me-3 text-white"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="text-white"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="mt-4 mb-4">
+            <div class="text-center">
+                <p>&copy; 2025 Government of NCT of Delhi. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Login Modal -->
+    <div class="modal fade" id="loginModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Login to Your Account</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="nav nav-pills mb-3 justify-content-center" id="loginTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="faculty-tab" data-bs-toggle="pill" data-bs-target="#faculty" type="button">Faculty Login</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="admin-tab" data-bs-toggle="pill" data-bs-target="#admin-login" type="button">Admin Login</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content" id="loginTabsContent">
+                        <div class="tab-pane fade show active" id="faculty" role="tabpanel">
+                            <form id="facultyLoginForm">
+                                <div class="mb-3">
+                                    <label for="facultyEmail" class="form-label">Email address</label>
+                                    <input type="email" class="form-control" id="facultyEmail" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="facultyPassword" class="form-label">Password</label>
+                                    <input type="password" class="form-control" id="facultyPassword" required>
+                                </div>
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="rememberMe">
+                                    <label class="form-check-label" for="rememberMe">Remember me</label>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100">Login</button>
+                            </form>
+                            <div class="text-center mt-3">
+                                <a href="#" data-bs-toggle="modal" data-bs-target="#registerModal">Don't have an account? Register</a>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="admin-login" role="tabpanel">
+                            <form id="adminLoginForm">
+                                <div class="mb-3">
+                                    <label for="adminEmail" class="form-label">Admin ID</label>
+                                    <input type="text" class="form-control" id="adminEmail" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="adminPassword" class="form-label">Password</label>
+                                    <input type="password" class="form-control" id="adminPassword" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100">Login as Admin</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div class="modal fade" id="registerModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Faculty Registration</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="registerForm">
+                        <div class="mb-3">
+                            <label for="regName" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="regName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="regEmail" class="form-label">Email address</label>
+                            <input type="email" class="form-control" id="regEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="regEmployeeCode" class="form-label">Employee Code</label>
+                            <input type="text" class="form-control" id="regEmployeeCode" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="regDepartment" class="form-label">Department</label>
+                            <select class="form-select" id="regDepartment" required>
+                                <option value="">Select Department</option>
+                                <option value="Computer Science">Computer Science</option>
+                                <option value="Mathematics">Mathematics</option>
+                                <option value="Physics">Physics</option>
+                                <option value="Chemistry">Chemistry</option>
+                                <option value="English">English</option>
+                                <option value="Economics">Economics</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="regPassword" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="regPassword" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="regConfirmPassword" class="form-label">Confirm Password</label>
+                            <input type="password" class="form-control" id="regConfirmPassword" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Register</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Submission Modal -->
+    <div class="modal fade" id="viewSubmissionModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Appraisal Submission Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="submissionDetails">
+                    <!-- Submission details will be loaded here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="downloadPdfBtn">Download as PDF</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Wait for DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Simulate preloader
+            setTimeout(function() {
+                document.querySelector('.preloader').style.display = 'none';
+            }, 1500);
+            
+            // Initialize tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+            
+            // Show notification function
+            function showNotification(message, type = 'success') {
+                const notification = document.getElementById('notification');
+                notification.textContent = message;
+                notification.className = 'notification show';
+                if (type === 'error') {
+                    notification.style.backgroundColor = 'var(--danger)';
+                } else if (type === 'warning') {
+                    notification.style.backgroundColor = 'var(--primary)';
+                } else {
+                    notification.style.backgroundColor = 'var(--success)';
+                }
+                
+                setTimeout(function() {
+                    notification.className = 'notification';
+                }, 3000);
+            }
+            
+            // Mock user data (in a real application, this would come from a backend)
+            const mockFacultyData = {
+                email: "faculty@example.edu",
+                name: "Dr. Rajesh Kumar",
+                employeeCode: "FAC2025001",
+                department: "Computer Science",
+                submissions: [
+                    {
+                        id: 1,
+                        date: "2025-01-15",
+                        academicYear: "2024-2025",
+                        status: "Submitted",
+                        data: {
+                            personalInfo: {
+                                name: "Dr. Rajesh Kumar",
+                                employeeCode: "FAC2025001",
+                                department: "Computer Science",
+                                designation: "Associate Professor",
+                                email: "faculty@example.edu",
+                                phone: "9876543210"
+                            },
+                            researchPublications: [
+                                {
+                                    title: "Machine Learning in Education",
+                                    journal: "International Journal of Educational Technology",
+                                    year: 2024,
+                                    authors: "Kumar, R., Singh, A.",
+                                    impactFactor: 3.5
+                                }
+                            ],
+                            seminarsConferences: [
+                                {
+                                    title: "National Conference on AI in Education",
+                                    type: "Conference",
+                                    date: "2024-11-20",
+                                    role: "Speaker",
+                                    venue: "IIT Delhi"
+                                }
+                            ],
+                            projects: [
+                                {
+                                    title: "AI-Based Learning Platform",
+                                    fundingAgency: "UGC",
+                                    amount: "15,00,000",
+                                    duration: "2 years",
+                                    status: "Ongoing",
+                                    role: "Principal Investigator"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            };
+            
+            const mockAdminData = {
+                submissions: [
+                    {
+                        id: 1,
+                        facultyName: "Dr. Rajesh Kumar",
+                        employeeCode: "FAC2025001",
+                        department: "Computer Science",
+                        submissionDate: "2025-01-15",
+                        academicYear: "2024-2025"
+                    },
+                    {
+                        id: 2,
+                        facultyName: "Dr. Priya Sharma",
+                        employeeCode: "FAC2025002",
+                        department: "Mathematics",
+                        submissionDate: "2025-01-10",
+                        academicYear: "2024-2025"
+                    },
+                    {
+                        id: 3,
+                        facultyName: "Dr. Amit Singh",
+                        employeeCode: "FAC2025003",
+                        department: "Physics",
+                        submissionDate: "2025-01-08",
+                        academicYear: "2024-2025"
+                    }
+                ]
+            };
+            
+            // Check if user is logged in (from sessionStorage)
+            let currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+            let isAdmin = sessionStorage.getItem('isAdmin') === 'true';
+            
+            if (currentUser) {
+                updateUIAfterLogin(currentUser, isAdmin);
+            }
+            
+            // Faculty Login Form Submission
+            document.getElementById('facultyLoginForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const email = document.getElementById('facultyEmail').value;
+                const password = document.getElementById('facultyPassword').value;
+                
+                // Mock authentication - in a real app, this would call an API
+                if (email === "faculty@example.edu" && password === "password") {
+                    sessionStorage.setItem('currentUser', JSON.stringify(mockFacultyData));
+                    sessionStorage.setItem('isAdmin', 'false');
+                    
+                    // Close the modal
+                    const loginModal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
+                    loginModal.hide();
+                    
+                    updateUIAfterLogin(mockFacultyData, false);
+                    showNotification('Login successful! Welcome back, ' + mockFacultyData.name);
+                } else {
+                    showNotification('Invalid email or password. Please try again.', 'error');
+                }
+            });
+            
+            // Admin Login Form Submission
+            document.getElementById('adminLoginForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const adminId = document.getElementById('adminEmail').value;
+                const password = document.getElementById('adminPassword').value;
+                
+                // Mock authentication - in a real app, this would call an API
+                if (adminId === "admin" && password === "admin123") {
+                    sessionStorage.setItem('currentUser', JSON.stringify({name: "Administrator", role: "Admin"}));
+                    sessionStorage.setItem('isAdmin', 'true');
+                    
+                    // Close the modal
+                    const loginModal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
+                    loginModal.hide();
+                    
+                    updateUIAfterLogin({name: "Administrator", role: "Admin"}, true);
+                    showNotification('Admin login successful!');
+                } else {
+                    showNotification('Invalid admin credentials. Please try again.', 'error');
+                }
+            });
+            
+            // Register Form Submission
+            document.getElementById('registerForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const name = document.getElementById('regName').value;
+                const email = document.getElementById('regEmail').value;
+                const employeeCode = document.getElementById('regEmployeeCode').value;
+                const department = document.getElementById('regDepartment').value;
+                const password = document.getElementById('regPassword').value;
+                const confirmPassword = document.getElementById('regConfirmPassword').value;
+                
+                if (password !== confirmPassword) {
+                    showNotification('Passwords do not match. Please try again.', 'error');
+                    return;
+                }
+                
+                // Mock registration - in a real app, this would call an API
+                const newUser = {
+                    email: email,
+                    name: name,
+                    employeeCode: employeeCode,
+                    department: department,
+                    submissions: []
+                };
+                
+                sessionStorage.setItem('currentUser', JSON.stringify(newUser));
+                sessionStorage.setItem('isAdmin', 'false');
+                
+                // Close the modal
+                const registerModal = bootstrap.Modal.getInstance(document.getElementById('registerModal'));
+                registerModal.hide();
+                
+                updateUIAfterLogin(newUser, false);
+                showNotification('Registration successful! Welcome, ' + name);
+            });
+            
+            // Logout functionality
+            document.getElementById('logoutBtn').addEventListener('click', function(e) {
+                e.preventDefault();
+                sessionStorage.removeItem('currentUser');
+                sessionStorage.removeItem('isAdmin');
+                
+                document.getElementById('loginNavItem').classList.remove('d-none');
+                document.getElementById('dashboardNavItem').classList.add('d-none');
+                document.getElementById('adminNavItem').classList.add('d-none');
+                document.getElementById('logoutNavItem').classList.add('d-none');
+                
+                document.getElementById('dashboard').classList.add('d-none');
+                document.getElementById('admin').classList.add('d-none');
+                
+                showNotification('You have been logged out successfully.');
+            });
+            
+            // Update UI after login
+            function updateUIAfterLogin(user, admin) {
+                document.getElementById('loginNavItem').classList.add('d-none');
+                document.getElementById('logoutNavItem').classList.remove('d-none');
+                
+                if (admin) {
+                    document.getElementById('adminNavItem').classList.remove('d-none');
+                    document.getElementById('admin').classList.remove('d-none');
+                    loadAdminData();
+                } else {
+                    document.getElementById('dashboardNavItem').classList.remove('d-none');
+                    document.getElementById('dashboard').classList.remove('d-none');
+                    
+                    // Update user info in dashboard
+                    document.getElementById('userName').textContent = user.name;
+                    document.getElementById('userEmail').textContent = user.email;
+                    document.getElementById('userCode').textContent = 'Employee Code: ' + user.employeeCode;
+                    
+                    // Load submissions if any
+                    loadUserSubmissions(user.submissions);
+                }
+            }
+            
+            // Load user submissions
+            function loadUserSubmissions(submissions) {
+                const tbody = document.getElementById('submissionsTableBody');
+                tbody.innerHTML = '';
+                
+                if (submissions.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center">No submissions yet</td></tr>';
+                    return;
+                }
+                
+                submissions.forEach(sub => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${sub.date}</td>
+                        <td>${sub.academicYear}</td>
+                        <td><span class="badge bg-success">${sub.status}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-primary view-submission" data-id="${sub.id}">View</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+                
+                // Add event listeners to view buttons
+                document.querySelectorAll('.view-submission').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const submissionId = this.getAttribute('data-id');
+                        const submission = submissions.find(s => s.id == submissionId);
+                        viewSubmission(submission);
+                    });
+                });
+            }
+            
+            // View submission details
+            function viewSubmission(submission) {
+                const modal = new bootstrap.Modal(document.getElementById('viewSubmissionModal'));
+                const detailsContainer = document.getElementById('submissionDetails');
+                
+                // Format and display submission details
+                detailsContainer.innerHTML = `
+                    <h6>Personal Information</h6>
+                    <table class="table table-bordered">
+                        <tr><th>Name</th><td>${submission.data.personalInfo.name}</td></tr>
+                        <tr><th>Employee Code</th><td>${submission.data.personalInfo.employeeCode}</td></tr>
+                        <tr><th>Department</th><td>${submission.data.personalInfo.department}</td></tr>
+                        <tr><th>Designation</th><td>${submission.data.personalInfo.designation}</td></tr>
+                        <tr><th>Email</th><td>${submission.data.personalInfo.email}</td></tr>
+                        <tr><th>Phone</th><td>${submission.data.personalInfo.phone}</td></tr>
+                    </table>
+                    
+                    <h6 class="mt-4">Research Publications</h6>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Journal</th>
+                                <th>Year</th>
+                                <th>Impact Factor</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${submission.data.researchPublications.map(pub => `
+                                <tr>
+                                    <td>${pub.title}</td>
+                                    <td>${pub.journal}</td>
+                                    <td>${pub.year}</td>
+                                    <td>${pub.impactFactor}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    
+                    <h6 class="mt-4">Seminars & Conferences</h6>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Type</th>
+                                <th>Date</th>
+                                <th>Role</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${submission.data.seminarsConferences.map(event => `
+                                <tr>
+                                    <td>${event.title}</td>
+                                    <td>${event.type}</td>
+                                    <td>${event.date}</td>
+                                    <td>${event.role}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+                
+                // Set up PDF download button
+                document.getElementById('downloadPdfBtn').onclick = function() {
+                    generatePDF(submission);
+                };
+                
+                modal.show();
+            }
+            
+            // Generate PDF function
+            function generatePDF(submission) {
+                // In a real application, this would use jsPDF to generate a PDF
+                showNotification('PDF download functionality would be implemented here with jsPDF', 'warning');
+            }
+            
+            // Load admin data
+            function loadAdminData() {
+                const tbody = document.getElementById('adminTableBody');
+                tbody.innerHTML = '';
+                
+                mockAdminData.submissions.forEach(sub => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${sub.facultyName}</td>
+                        <td>${sub.employeeCode}</td>
+                        <td>${sub.department}</td>
+                        <td>${sub.submissionDate}</td>
+                        <td>${sub.academicYear}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary view-submission-admin" data-id="${sub.id}">View</button>
+                            <button class="btn btn-sm btn-success download-submission" data-id="${sub.id}">Download PDF</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+            
+            // New Appraisal Button
+            document.getElementById('newAppraisalBtn').addEventListener('click', function() {
+                document.querySelector('.submissions-list').classList.add('d-none');
+                document.querySelector('.appraisal-form').classList.remove('d-none');
+                initAppraisalForm();
+            });
+            
+            // View Submissions Button
+            document.getElementById('viewSubmissionsBtn').addEventListener('click', function() {
+                document.querySelector('.appraisal-form').classList.add('d-none');
+                document.querySelector('.submissions-list').classList.remove('d-none');
+            });
+            
+            // Back to Dashboard Button
+            document.getElementById('backToDashboardBtn').addEventListener('click', function() {
+                document.querySelector('.submissions-list').classList.add('d-none');
+                document.querySelector('.appraisal-form').classList.remove('d-none');
+            });
+            
+            // Research Sync Button
+            document.getElementById('researchSyncBtn').addEventListener('click', function() {
+                showNotification('Research publications sync would be implemented with Google Scholar API', 'warning');
+            });
+            
+            // Initialize Appraisal Form
+            function initAppraisalForm() {
+                // This would set up the multi-step form with all the necessary fields
+                // For the demo, we'll just show a message
+                const form = document.getElementById('appraisalForm');
+                form.innerHTML = `
+                    <div class="alert alert-info">
+                        <h6>Form Sections</h6>
+                        <p>This would be a multi-step form with the following sections:</p>
+                        <ol>
+                            <li>Personal Information</li>
+                            <li>Research Publications</li>
+                            <li>Seminars & Conferences Attended</li>
+                            <li>Projects Undertaken</li>
+                            <li>Lectures Delivered</li>
+                            <li>Contributions to Academic Community</li>
+                            <li>Summary and Submission</li>
+                        </ol>
+                        <p>Each section would have appropriate form fields for data entry.</p>
+                    </div>
+                `;
+                
+                // Show submit button for demo purposes
+                document.getElementById('submitBtn').classList.remove('d-none');
+            }
+            
+            // Form submission handler
+            document.getElementById('appraisalForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                showNotification('Appraisal form submitted successfully!');
+                
+                // In a real application, this would save the form data
+                // and update the UI accordingly
+            });
+            
+            // Export All Button (Admin)
+            document.getElementById('exportAllBtn').addEventListener('click', function() {
+                showNotification('Exporting all submissions as PDF would be implemented here', 'warning');
+            });
+            
+            // Sort options (Admin)
+            document.querySelectorAll('.sort-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const sortBy = this.getAttribute('data-sort');
+                    showNotification(`Sorted by ${sortBy}`, 'warning');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
